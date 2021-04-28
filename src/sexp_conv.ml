@@ -41,7 +41,8 @@ let sexp_of_int n = Atom (string_of_int n)
 let sexp_of_float n = Atom (!default_string_of_float n)
 let sexp_of_int32 n = Atom (Int32.to_string n)
 let sexp_of_int64 n = Atom (Int64.to_string n)
-let sexp_of_nativeint n = Atom (Nativeint.to_string n)
+(* Nativeint does not exist in ReScript *)
+let sexp_of_nativeint n = Atom (Int32.to_string n)
 let sexp_of_ref sexp_of__a rf = sexp_of__a !rf
 let sexp_of_lazy_t sexp_of__a lv = sexp_of__a (Lazy.force lv)
 
@@ -288,10 +289,11 @@ let int64_of_sexp sexp =
   | List _ -> of_sexp_error "int64_of_sexp: atom needed" sexp
 ;;
 
+(* Nativeint does not exist in ReScript *)
 let nativeint_of_sexp sexp =
   match sexp with
   | Atom str ->
-    (try Nativeint.of_string str with
+    (try Int32.of_string str with
      | exc -> of_sexp_error ("nativeint_of_sexp: " ^ exn_to_string exc) sexp)
   | List _ -> of_sexp_error "nativeint_of_sexp: atom needed" sexp
 ;;

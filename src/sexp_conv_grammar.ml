@@ -7,7 +7,8 @@ let int_sexp_grammar : int Sexp_grammar.t = { untyped = Integer }
 let float_sexp_grammar : float Sexp_grammar.t = { untyped = Float }
 let int32_sexp_grammar : int32 Sexp_grammar.t = { untyped = Integer }
 let int64_sexp_grammar : int64 Sexp_grammar.t = { untyped = Integer }
-let nativeint_sexp_grammar : nativeint Sexp_grammar.t = { untyped = Integer }
+(* Nativeint is not supported in ReScript *)
+let nativeint_sexp_grammar : int32 Sexp_grammar.t = { untyped = Integer }
 let ref_sexp_grammar grammar = Sexp_grammar.coerce grammar
 let lazy_t_sexp_grammar grammar = Sexp_grammar.coerce grammar
 

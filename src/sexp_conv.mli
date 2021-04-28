@@ -76,8 +76,9 @@ val sexp_of_int32 : int32 -> Sexp.t
 val sexp_of_int64 : int64 -> Sexp.t
 
 (** [sexp_of_nativeint n] converts the value [n] of type [nativeint] to an
-    S-expression. *)
-val sexp_of_nativeint : nativeint -> Sexp.t
+    S-expression.
+    Nativeint does not exist in ReScript, converts to [int32] instead. *)
+val sexp_of_nativeint : int32 -> Sexp.t
 
 (** [sexp_of_ref conv r] converts the value [r] of type ['a ref] to
     an S-expression.  Uses [conv] to convert values of type ['a] to an
@@ -188,8 +189,9 @@ val int32_of_sexp : Sexp.t -> int32
 val int64_of_sexp : Sexp.t -> int64
 
 (** [nativeint_of_sexp sexp] converts S-expression [sexp] to a value
-    of type [nativeint]. *)
-val nativeint_of_sexp : Sexp.t -> nativeint
+    of type [nativeint].
+    Nativeint does not exist in ReScript, converts to [int32] instead. *)
+val nativeint_of_sexp : Sexp.t -> int32
 
 (** [ref_of_sexp conv sexp] converts S-expression [sexp] to a value
     of type ['a ref] using conversion function [conv], which converts
