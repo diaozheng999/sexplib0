@@ -1,0 +1,12 @@
+{
+  "name": "@nasi/js-sexplib0",
+  "description": "Port of Jane Street's Sexplib0 to ReScript",
+  "version": "0.14.0",
+  "scripts": {
+    "build": "bsb -make-world",
+    "clean": "bsb -clean-world"
+  },
+  "devDependencies": {
+    "bs-platform": "^9.0.2"
+  }
+}

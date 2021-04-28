@@ -1,0 +1,17 @@
+{
+  "name": "@nasi/js-sexplib0",
+  "namespace": "sexplib0",
+  "version": "0.1.0",
+  "sources": {
+    "dir" : "src",
+    "subdirs" : true
+  },
+  "package-specs": {
+    "module": "es6",
+    "in-source": false
+  },
+  "suffix": ".bs.js",
+  "bs-dependencies": [],
+  "warnings": {},
+  "ppx-flags": []
+}
