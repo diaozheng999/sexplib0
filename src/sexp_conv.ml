@@ -1,5 +1,4 @@
 (* Utility Module for S-expression Conversions *)
-let polymorphic_compare = compare
 
 open StdLabels
 open MoreLabels
@@ -89,22 +88,23 @@ module Exn_converter = struct
 
   (* Fast and automatic exception registration *)
 
-  module Int = struct
-    type t = int
-
-    let compare t1 t2 = polymorphic_compare (t1 : int) t2
+  module String = struct
+    type t = string
+    external compare : t -> t -> int = "%compare"
   end
 
-  module Exn_ids = Map.Make (Int)
+  module Exn_ids = Map.Make (String)
 
   module Obj = struct
     module Extension_constructor = struct
-      [@@@ocaml.warning "-3"]
 
       type t = extension_constructor
 
-      let id = Obj.extension_id
-      let of_val = Obj.extension_constructor
+      external id : t -> string = "%identity"
+
+      external%private of_val_internal : 'a -> t = "RE_EXN_ID" [@@bs.send]
+
+      let of_val exn = of_val_internal (Js.Exn.anyToExnInternal exn)
     end
   end
 
@@ -116,22 +116,11 @@ module Exn_converter = struct
       }
   end
 
+  (* extension_id's are strings in ReScript, so we don't need to worry about GC. *)
   let exn_id_map
-    : (Obj.Extension_constructor.t, Registration.t) Ephemeron.K1.t Exn_ids.t ref
+    : Registration.t Exn_ids.t ref
     =
     ref Exn_ids.empty
-  ;;
-
-  (* [Obj.extension_id] works on both the exception itself, and the extension slot of the
-     exception. *)
-  let rec clean_up_handler (slot : Obj.Extension_constructor.t) =
-    let id = Obj.Extension_constructor.id slot in
-    let old_exn_id_map = !exn_id_map in
-    let new_exn_id_map = Exn_ids.remove id old_exn_id_map in
-    (* This trick avoids mutexes and should be fairly efficient *)
-    if !exn_id_map != old_exn_id_map
-    then clean_up_handler slot
-    else exn_id_map := new_exn_id_map
   ;;
 
   (* Ephemerons are used so that [sexp_of_exn] closure don't keep the
@@ -140,24 +129,16 @@ module Exn_converter = struct
     let id = Obj.Extension_constructor.id extension_constructor in
     let rec loop () =
       let old_exn_id_map = !exn_id_map in
-      let ephe = Ephemeron.K1.create () in
-      Ephemeron.K1.set_data ephe ({ sexp_of_exn; printexc } : Registration.t);
-      Ephemeron.K1.set_key ephe extension_constructor;
-      let new_exn_id_map = Exn_ids.add old_exn_id_map ~key:id ~data:ephe in
+      let new_exn_id_map = Exn_ids.add old_exn_id_map
+        ~key:id
+        ~data:({ sexp_of_exn; printexc } : Registration.t) in
       (* This trick avoids mutexes and should be fairly efficient *)
       if !exn_id_map != old_exn_id_map
       then loop ()
-      else (
-        exn_id_map := new_exn_id_map;
-        if finalise
-        then (
-          try Gc.finalise clean_up_handler extension_constructor with
-          | Invalid_argument _ ->
-            (* Pre-allocated extension constructors cannot be finalised *)
-            ()))
+      else (exn_id_map := new_exn_id_map)
     in
     loop ()
-  ;;
+  [@@warning "-27"];;
 
   let add_auto ?finalise exn sexp_of_exn =
     add ?finalise (Obj.Extension_constructor.of_val exn) sexp_of_exn
@@ -167,21 +148,15 @@ module Exn_converter = struct
     let id = Obj.Extension_constructor.id (Obj.Extension_constructor.of_val exn) in
     match Exn_ids.find id !exn_id_map with
     | exception Not_found -> None
-    | ephe ->
-      (match Ephemeron.K1.get_data ephe with
-       | None -> None
-       | Some { sexp_of_exn; printexc } ->
+    | { sexp_of_exn; printexc } ->
          (match for_printexc, printexc with
           | false, _ | _, true -> Some (sexp_of_exn exn)
-          | true, false -> None))
+          | true, false -> None)
   ;;
 
   module For_unit_tests_only = struct
     let size () =
-      Exn_ids.fold !exn_id_map ~init:0 ~f:(fun ~key:_ ~data:ephe acc ->
-        match Ephemeron.K1.get_data ephe with
-        | None -> acc
-        | Some _ -> acc + 1)
+      Exn_ids.fold !exn_id_map ~init:0 ~f:(fun ~key:_ ~data:_ acc -> acc + 1)
     ;;
   end
 end
