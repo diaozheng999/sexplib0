@@ -102,7 +102,7 @@ module Exn_converter = struct
 
       external id : t -> string = "%identity"
 
-      external%private of_val_internal : 'a -> t = "RE_EXN_ID" [@@bs.send]
+      external%private of_val_internal : 'a -> t = "RE_EXN_ID" [@@bs.get]
 
       let of_val exn = of_val_internal (Js.Exn.anyToExnInternal exn)
     end

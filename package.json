@@ -1,12 +1,21 @@
 {
   "name": "@nasi/js-sexplib0",
   "description": "Port of Jane Street's Sexplib0 to ReScript",
-  "version": "0.14.0",
+  "version": "0.0.0-unstable.2",
   "scripts": {
     "build": "bsb -make-world",
-    "clean": "bsb -clean-world"
+    "clean": "bsb -clean-world",
+    "prepack": "bsb -make-world"
   },
+  "keywords": ["rescript", "sexp", "S-expression"],
   "devDependencies": {
     "bs-platform": "^9.0.2"
-  }
+  },
+  "files": [
+    "lib/js",
+    "src",
+    "LICENSE.md",
+    "bsconfig.json",
+    "package.json"
+  ]
 }
